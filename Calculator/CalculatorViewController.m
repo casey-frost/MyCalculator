@@ -10,7 +10,6 @@
 #import "CalculatorBrain.h"
 
 @interface CalculatorViewController ()
-@property (nonatomic) BOOL userIsInTheMiddleOfEnteringANumber;
 @property (nonatomic,strong) CalculatorBrain *brain;
 @end
 
@@ -110,8 +109,9 @@
 {
     // Clear the universalDisplay. This happens when the user hits the = button then starts a new number.
     if (self.brain.clearUniversalDisplayFlag){
-        self.universalDisplay.text = @"";
-        self.brain.clearUniversalDisplayFlag = NO;
+        self.display.text           =   @"0";
+        self.universalDisplay.text  =   @"0";
+        self.brain                  =   [[CalculatorBrain alloc] init];
     }
     
     // Store the new digit as an NSNumber
@@ -184,10 +184,11 @@
 
 - (IBAction)decimalPressed:(UIButton*)sender
 {
-    // Starting a value with a decimal should clear the universalDisplay if ='s was the last thing pressed
+    // Starting a value with a decimal should clear the universalDisplay if = was the last thing pressed
     if (self.brain.clearUniversalDisplayFlag){
-        self.universalDisplay.text = @"";
-        self.brain.clearUniversalDisplayFlag = NO;
+        self.display.text           =   @"0";
+        self.universalDisplay.text  =   @"0";
+        self.brain                  =   [[CalculatorBrain alloc] init];
     }
     
     // If there's no firstValue then firstValue becomes 0 and firstMultiplier changes to account for the decimal place
@@ -280,6 +281,143 @@
     self.brain.clearUniversalDisplayFlag = NO;
 }
 
+- (IBAction)backspace:(id)sender {
+    NSLog(@"%@", [NSString stringWithFormat:@"secondValue = %@", self.brain.secondValue]);
+    if (self.brain.secondValueIs0){
+        NSLog(@"secondValueIs0 = YES");
+    }else{
+        NSLog(@"secondValueIs0 = NO");
+    }
+    if (self.brain.firstValue || self.brain.firstValueIs0){                                             // firstValue has been entered
+        if (self.brain.operator){                                                                       // operator has been entered
+            if (self.brain.secondValue || self.brain.secondValueIs0){                                   // secondValue has been entered
+                if ([self.brain.secondMultiplier isEqualToNumber:([NSNumber numberWithInt:10])]){       // decimal was last thing entered so remove it
+                    if (self.brain.secondValueIs0){                                                     // if value is 0 then we need to remove extra spaces after the operator
+                        self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-3];
+                    }else{
+                        self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-1];
+                    }
+                    self.display.text = [self.display.text substringToIndex:[self.display.text length]-1];
+                    self.brain.secondMultiplier = [NSNumber numberWithInt:1];
+                    self.brain.secondValueIs0 = NO;
+                }else if([self.brain.secondMultiplier intValue] > 10){
+                    self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-1];
+                    self.display.text = self.display.text = [self.display.text substringToIndex:[self.display.text length]-1];
+                    self.brain.secondMultiplier = [NSNumber numberWithInt:[self.brain.secondMultiplier intValue]/10];
+                    
+                    // Remove right digit from secondValue only if digits to the right of the decimal matches up with multiplier
+                    NSString *secondValueString = [NSString stringWithFormat:@"%@", self.brain.secondValue];
+                    
+                    if ([secondValueString rangeOfString:@"."].location != NSNotFound) {
+                        NSRange rangeOfDecimal = [secondValueString rangeOfString:@"."];
+                        NSString *rightOfDecimal = [secondValueString substringFromIndex:NSMaxRange(rangeOfDecimal)];
+                        int secondValueCountRightOfDecimal = [rightOfDecimal length];
+                        int multiplierCount = [[NSString stringWithFormat:@"%@", self.brain.secondMultiplier] length] - 1;
+                        if(secondValueCountRightOfDecimal == multiplierCount){
+                            self.brain.secondValue = [NSNumber numberWithDouble:[[secondValueString substringToIndex:[secondValueString length]-1] doubleValue]];
+                        }
+                    }
+                    
+                    // Test if value = 0 and set it
+                    if ([self.brain.secondValue doubleValue] == 0){
+                        self.brain.secondValue = nil;
+                        
+                        if ([self.brain.secondMultiplier intValue] > 1){
+                            self.brain.secondValueIs0 = YES;
+                        }else{
+                            self.brain.secondValueIs0 = NO;
+                            // Delete additional spaces
+                            self.display.text = [NSString stringWithFormat:@"%@", self.brain.firstValue];
+                            self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-1];
+                        }
+                    }
+                }else if([self.brain.secondMultiplier intValue] == 1){
+                    self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-1];
+                    self.display.text = self.display.text = [self.display.text substringToIndex:[self.display.text length]-1];
+                    
+                    // Remove right digit from secondValue
+                    NSString *secondValueString = [NSString stringWithFormat:@"%@", self.brain.secondValue];
+                    self.brain.secondValue = [NSNumber numberWithInt:[[secondValueString substringToIndex:[secondValueString length]-1] intValue]];
+                    
+                    // Test if value = 0 and set it
+                    if ([self.brain.secondValue intValue] == 0){
+                        self.brain.secondValue = nil;
+                        
+                        self.brain.secondValueIs0 = NO;
+                        // Delete additional spaces
+                        self.display.text = [NSString stringWithFormat:@"%@", self.brain.firstValue];
+                        self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-1];
+                    }
+                }
+            }else{
+                self.brain.operator = nil;
+                self.universalDisplay.text = self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-2];
+                self.display.text = [NSString stringWithFormat:@"%@",self.brain.firstValue];
+            }
+        }else{
+            if ([self.brain.firstMultiplier isEqualToNumber:([NSNumber numberWithInt:10])]){
+                if (self.brain.firstValueIs0){
+                    self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-3];
+                }else{
+                    self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-1];
+                }
+                self.display.text = self.display.text = [self.display.text substringToIndex:[self.display.text length]-1];
+                self.brain.firstMultiplier = [NSNumber numberWithInt:1];
+                self.brain.firstValueIs0 = NO;
+            }else if([self.brain.firstMultiplier intValue] > 10){
+                self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-1];
+                self.display.text = self.display.text = [self.display.text substringToIndex:[self.display.text length]-1];
+                self.brain.firstMultiplier = [NSNumber numberWithInt:[self.brain.firstMultiplier intValue]/10];
+                
+                // Remove right digit from firstValue only if digits to the right of the decimal matches up with multiplier
+                NSString *firstValueString = [NSString stringWithFormat:@"%@", self.brain.firstValue];
+                
+                if ([firstValueString rangeOfString:@"."].location != NSNotFound) {
+                    NSRange rangeOfDecimal = [firstValueString rangeOfString:@"."];
+                    NSString *rightOfDecimal = [firstValueString substringFromIndex:NSMaxRange(rangeOfDecimal)];
+                    int firstValueCountRightOfDecimal = [rightOfDecimal length];
+                    int multiplierCount = [[NSString stringWithFormat:@"%@", self.brain.firstMultiplier] length] - 1;
+                    if(firstValueCountRightOfDecimal == multiplierCount){
+                        self.brain.firstValue = [NSNumber numberWithDouble:[[firstValueString substringToIndex:[firstValueString length]-1] doubleValue]];
+                    }
+                }
+                
+                // Test if value = 0 and set it
+                if ([self.brain.firstValue doubleValue] == 0){
+                    self.brain.firstValue = nil;
+                    
+                    if ([self.brain.firstMultiplier intValue] > 1){
+                        self.brain.firstValueIs0 = YES;
+                    }else{
+                        self.brain.firstValueIs0 = NO;
+                        // Delete additional spaces
+                        self.display.text = [NSString stringWithFormat:@"%@", self.brain.firstValue];
+                        self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-1];
+                    }
+                }
+            }else if([self.brain.firstMultiplier intValue] == 1){
+                
+                self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-1];
+                self.display.text = self.display.text = [self.display.text substringToIndex:[self.display.text length]-1];
+                
+                // Remove right digit from firstValue
+                NSString *firstValueString = [NSString stringWithFormat:@"%@", self.brain.firstValue];
+                self.brain.firstValue = [NSNumber numberWithInt:[[firstValueString substringToIndex:[firstValueString length]-1] intValue]];
+                
+                // Test if value = 0 and set it
+                if ([self.brain.firstValue intValue] == 0){
+                    self.brain.firstValue = nil;
+                    
+                    self.brain.firstValueIs0 = NO;
+                    // Delete additional spaces
+                    self.display.text = @"0";
+                    self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-1];
+                }
+            }
+        }
+    } // Else there is nothing to backspace
+}
+
 - (IBAction)equalsPressed
 {
     [self equals];
@@ -289,3 +427,24 @@
 }
 
 @end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

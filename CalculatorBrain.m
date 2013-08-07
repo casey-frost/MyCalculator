@@ -6,6 +6,25 @@
 //  Copyright (c) 2013 Casey Frost. All rights reserved.
 //
 
+
+
+
+
+
+
+/*
+ 
+ 
+ + (NSNumber *)evaluateStringWith(NSString)mathString
+ move thing in viewController to brain
+    viewController should deal with input/output and giving/taking info from the brain
+ not all variables should be properties
+ firstValueIs0 is unnecessary because nil and 0 can be differentiated in NSNumbers
+ build equation with string and only use NSNumbers when making calculation
+ 
+ 
+ */
+
 #import "CalculatorBrain.h"
 
 @implementation CalculatorBrain
