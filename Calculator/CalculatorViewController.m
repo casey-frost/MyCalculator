@@ -10,53 +10,47 @@
 #import "CalculatorBrain.h"
 
 @interface CalculatorViewController ()
-@property (nonatomic,strong) CalculatorBrain *brain;
+@property (nonatomic, weak) IBOutlet UILabel *display;                  // Displays the last value typed
+@property (nonatomic, weak) IBOutlet UILabel *universalDisplay;         // Displays full history. Truncated when too wide for screen. Clear when clear hit or completely new equation started
+@property (nonatomic, strong) NSString *completeUniversalDisplay;       // Stores full history so previous results and previous operations can be stored and re-run. Clears with clear button & new equation
 @end
+
+BOOL userIsEnteringANumber = NO;                                        // Lets us know when to clear display vs add to it
+BOOL clearAfterNewEquation = NO;                                        // Lets us know if user starts a new equation without clearing so we can clear
 
 @implementation CalculatorViewController
 
-// Not sure if I'm required to use _'s here, wasn't able to get brain or self.brain to do anything
+/* Not sure if I'm required to use _'s here, wasn't able to get brain or self.brain to do anything
 - (CalculatorBrain *)brain
 {
     if (!_brain) _brain = [[CalculatorBrain alloc] init];
     return _brain;
+}*/
+
+- (void)viewDidLoad {
+    self.display.text = @"0";
+    self.universalDisplay.text = @"0";
+    self.completeUniversalDisplay = @"0";
 }
 
-// Clears the displays and re-initializes the brain so all variables are sback to their default values
-- (IBAction)clearPressed:(id)sender {
-    self.display.text           =   @"0";
-    self.universalDisplay.text  =   @"0";
-    self.brain                  =   [[CalculatorBrain alloc] init];
-}
-
-// Takes a value, multiplier and new digit and makes the new number. This is only necessary because I wanted to work with NSNumbers instead of string representations of number
-- (NSNumber*)calculateValueWith:(NSNumber *)Value And:(NSNumber *)Multiplier And:(NSNumber *)digit
-{
-    // Convert the NSNumbers to C primitives
-    double valueDouble = [Value doubleValue];
-    int multiplierInt = [Multiplier intValue];
-    
-    // If there is a decimal
-    if ([Multiplier intValue] > 1){
-        // Convert the number to a whole number, add the new digit then convert back to a double
-        valueDouble = (valueDouble*multiplierInt+[digit intValue]) / multiplierInt;
-    }else{
-        // If there's no decimal then multiply by 10 and add the new digit
-        valueDouble = valueDouble*10+[digit intValue];
-    }
-    
-    return [NSNumber numberWithDouble:valueDouble];
+// Clears all variables
+- (IBAction)clearPressed:(UIButton *)sender {
+    self.display.text               =   @"0";
+    self.universalDisplay.text      =   @"0";
+    self.completeUniversalDisplay   =   @"0";
+    userIsEnteringANumber           =   NO;
+    clearAfterNewEquation           =   NO;
 }
 
 // Returns the max size universalDisplay text that will fit on the screen
 - (NSString *)sizeUniversalDisplayToFit:(NSString *)suggestedUniversalDisplay {
     
     // Separate string by = signs and store the amount of string fragments
-    NSArray *separatedString = [suggestedUniversalDisplay componentsSeparatedByString:@"="];
+    NSArray *separatedString = [suggestedUniversalDisplay componentsSeparatedByString:@"= "];
     NSUInteger splitCount = [separatedString count];
     
     // If there's only 1 fragment left then return it even if it's too wide for the screen
-    if( splitCount == 1){
+    if (splitCount == 1) {
         return suggestedUniversalDisplay;
     }
     
@@ -67,363 +61,261 @@
     // If new string is still too large for the screen then rerecursively call the same function until it fits
     if (universalDisplayTextSize.width > availableUniversalDisplaySize.width) {
         NSArray *shortenedUniversalDisplay = [separatedString subarrayWithRange:NSMakeRange(1, splitCount - 1)];
-        return [self sizeUniversalDisplayToFit:[shortenedUniversalDisplay componentsJoinedByString:@"="]];
+        return [self sizeUniversalDisplayToFit:[shortenedUniversalDisplay componentsJoinedByString:@"= "]];
     }
     
     return suggestedUniversalDisplay;
 }
 
-// Sets variables for special operations like an operand running an operation on itself or re-running the operation on the result
-- (void)equals
-{
-    if (self.brain.firstValue || self.brain.firstValueIs0){
-		if (self.brain.operator){
-			if (!self.brain.secondValue && !self.brain.secondValueIs0){
-                // Mac calculators run the operation on itself if there's no secondValue
-                self.brain.secondValue = self.brain.firstValue;
-            }
-            
-            // Solve the equation and display the result
-            self.display.text = [NSString stringWithFormat: @"%@", [self.brain getSolution]];
-            
-            // Confirm the string will fit in universalDisplay then update universalDisplay
-            NSString *suggestedUnversalHistory = [NSString stringWithFormat: @"%@ = %@", self.universalDisplay.text, self.display.text];
-            self.universalDisplay.text = [self sizeUniversalDisplayToFit:suggestedUnversalHistory];
-        }
-    }else{
-        // Run the same operation on the previousResult if the user hit ='s again
-        if (self.brain.previousOperator){
-            // retrieve old values and run operation again
-            self.brain.firstValue = self.brain.previousResult;
-            self.brain.secondValue = self.brain.previousSecondValue;
-            self.brain.secondMultiplier = self.brain.previousSecondMultiplier;
-            self.brain.operator = self.brain.previousOperator;
-            
-            // Call same function now that values are set again
-            [self equals];
-        }
-    }
-}
-
 - (IBAction)digitPressed:(UIButton *)sender
 {
-    // Clear the universalDisplay. This happens when the user hits the = button then starts a new number.
-    if (self.brain.clearUniversalDisplayFlag){
-        self.display.text           =   @"0";
-        self.universalDisplay.text  =   @"0";
-        self.brain                  =   [[CalculatorBrain alloc] init];
+    // If user is starting a new equation we need to clear state
+    if (clearAfterNewEquation){
+        [self clearPressed:sender];
     }
     
-    // Store the new digit as an NSNumber
-    NSNumber *digit = [NSNumber numberWithDouble:[[sender currentTitle] doubleValue]];
+    // Store which digit was pressed
+    NSString *digit = [sender currentTitle];
     
-    // If there is no firstValue then set it
-    if (!self.brain.firstValue && !self.brain.firstValueIs0){
-        self.brain.firstValue = digit;
-        self.display.text = [sender currentTitle];
-        
-        // If the first digit of the number is 0 we must store that in another variable because only testing for if(firstValue) breaks when it's 0
-		if (!digit){
-			self.brain.firstValueIs0 = YES;
-        }
-        
-        // Remove the placeholder 0 if that's all that's in the universalDisplay, otherwise add the new digit to the universal display
-        if ([self.universalDisplay.text isEqualToString: @"0"]){
-            self.universalDisplay.text = [NSString stringWithFormat: @"%@", digit];
-        }else{
-            self.universalDisplay.text = [NSString stringWithFormat: @"%@ %@", self.universalDisplay.text, digit];
-        }
+    // If display text is 0 replace it
+    if ([self.display.text isEqualToString: @"0"]){
+        self.display.text = @"";
     }
-    // If the operator isn't set and firstValue has a value then we are adding a new digit to the end of firstValue
-    else if (!self.brain.operator){
-        self.brain.firstValue = [self calculateValueWith:self.brain.firstValue And:self.brain.firstMultiplier And:digit];
-        if ([self.brain.firstMultiplier intValue] > 1){
-            self.brain.firstMultiplier = [NSNumber numberWithInt:([self.brain.firstMultiplier intValue]*10)];
-        }
-        
-        if (self.brain.firstValueIs0 && [digit intValue] != 0){
-            self.brain.firstValueIs0 = NO;
-        }
-        
-        self.display.text = [NSString stringWithFormat: @"%g", [self.brain.firstValue doubleValue]];
-        
-        NSString *suggestedUnversalHistory = [NSString stringWithFormat: @"%@%@", self.universalDisplay.text, digit];
-        self.universalDisplay.text = [self sizeUniversalDisplayToFit:suggestedUnversalHistory];
+    if ([self.universalDisplay.text isEqualToString: @"0"]){
+        self.universalDisplay.text = @"";
+        self.completeUniversalDisplay = @"";
     }
-    // There is a firstValue and an operator, use new digit for secondValue
-    else{
-        if (!self.brain.secondValue && !self.brain.secondValueIs0){
-            if ([digit intValue] == 0){
-                self.brain.secondValueIs0 = YES;
-            }else{
-                self.brain.secondValueIs0 = NO;
-            }
-            
-            if ([self.brain.secondMultiplier intValue] > 1){
-                self.brain.secondValue = [self calculateValueWith:self.brain.secondValue And:self.brain.secondMultiplier And:digit];
-                self.brain.secondMultiplier = [NSNumber numberWithDouble:[self.brain.secondMultiplier intValue] * 10];
-            }else{
-                self.brain.secondValue = digit;
-            }
-            
-            NSString *suggestedUnversalHistory = [NSString stringWithFormat: @"%@ %@", self.universalDisplay.text, digit];
-            self.universalDisplay.text = [self sizeUniversalDisplayToFit:suggestedUnversalHistory];
-        }else{
-            self.brain.secondValue = [self calculateValueWith:self.brain.secondValue And:self.brain.secondMultiplier And:digit];
-            
-            if ([self.brain.secondMultiplier intValue] > 1){
-                self.brain.secondMultiplier = [NSNumber numberWithInt:[self.brain.secondMultiplier intValue] * 10];
-            }
-            
-            NSString *suggestedUnversalHistory = [NSString stringWithFormat: @"%@%@", self.universalDisplay.text, digit];
-            self.universalDisplay.text = [self sizeUniversalDisplayToFit:suggestedUnversalHistory];
-        }
-        self.display.text = [NSString stringWithFormat: @"%g", [self.brain.secondValue doubleValue]];
+    
+    // Add to the basic display if the user is in the middle of entering a number, otherwise replace it with the new digit
+    if (userIsEnteringANumber) {
+        // Add digit to display
+        self.display.text = [NSString stringWithFormat:@"%@%@", self.display.text, digit];
+    }else{
+        self.display.text = digit;
     }
+    
+    // Add a space if user isn't in the middle of entering a number and the universalDisplay isn't blank
+    if (!userIsEnteringANumber && ![self.universalDisplay.text isEqualToString:@""]){
+        digit = [NSString stringWithFormat:@" %@", digit];
+    }
+    
+    // Make edits to universalDisplays, make sure universalDisplay isn't too wide for screen
+    NSString *suggestedUnversalDisplay = [NSString stringWithFormat:@"%@%@", self.universalDisplay.text, digit];
+    self.universalDisplay.text = [self sizeUniversalDisplayToFit:suggestedUnversalDisplay];
+    
+    self.completeUniversalDisplay = [NSString stringWithFormat:@"%@%@", self.completeUniversalDisplay, digit];
+    
+    // User is always entering a number when a digit is pressed
+    userIsEnteringANumber = YES;
 }
 
 - (IBAction)decimalPressed:(UIButton*)sender
 {
-    // Starting a value with a decimal should clear the universalDisplay if = was the last thing pressed
-    if (self.brain.clearUniversalDisplayFlag){
-        self.display.text           =   @"0";
-        self.universalDisplay.text  =   @"0";
-        self.brain                  =   [[CalculatorBrain alloc] init];
+    // If user is starting a new equation we need to clear state
+    if (clearAfterNewEquation){
+        [self clearPressed:sender];
     }
     
-    // If there's no firstValue then firstValue becomes 0 and firstMultiplier changes to account for the decimal place
-    if (!self.brain.firstValue && !self.brain.firstValueIs0){
-		self.brain.firstMultiplier = [NSNumber numberWithInt:10];
-        self.brain.firstValueIs0 = YES;
+    // Add a decimal if no decimal exists, add space if not entering a number currently
+    if (userIsEnteringANumber){
+        if ([self.display.text rangeOfString:@"."].location == NSNotFound) {
+            self.display.text = [NSString stringWithFormat:@"%@.", self.display.text];
+            
+            NSString *suggestedUnversalDisplay = [NSString stringWithFormat:@"%@.", self.universalDisplay.text];
+            self.universalDisplay.text = [self sizeUniversalDisplayToFit:suggestedUnversalDisplay];
+            
+            self.completeUniversalDisplay = [NSString stringWithFormat:@"%@.", self.completeUniversalDisplay];
+        }
+    }else{
         self.display.text = @"0.";
-        
         if ([self.universalDisplay.text isEqualToString: @"0"]){
             self.universalDisplay.text = @"0.";
+            self.completeUniversalDisplay = @"0.";
         }else{
-            // Might be some unecessary code because i think it could only reach here if universalDisplay was already cleared
-            NSString *suggestedUnversalHistory = [NSString stringWithFormat: @"%@%@", self.universalDisplay.text, @"0."];
-            self.universalDisplay.text = [self sizeUniversalDisplayToFit:suggestedUnversalHistory];
+            self.universalDisplay.text = [NSString stringWithFormat:@"%@ 0.", self.universalDisplay.text];
+            self.completeUniversalDisplay = [NSString stringWithFormat:@"%@ 0.", self.completeUniversalDisplay];
         }
-    }
-    // If there's no operator the decimal is in the middle of the firstValue
-    else if (!self.brain.operator){
-        if ([self.brain.firstMultiplier intValue] < 10){
-            self.brain.firstMultiplier = [NSNumber numberWithInt:10];
-            self.display.text = [NSString stringWithFormat: @"%@%@", self.display.text, @"."];
-            
-            NSString *suggestedUnversalHistory = [NSString stringWithFormat: @"%@%@", self.universalDisplay.text, @"."];
-            self.universalDisplay.text = [self sizeUniversalDisplayToFit:suggestedUnversalHistory];
-        }// Do nothing if > 1 because there already is a decimal
-    }
-    // Otherwise decimal goes in secondValue
-    else{
-        if (!self.brain.secondValue && !self.brain.secondValueIs0){
-            self.brain.secondMultiplier = [NSNumber numberWithInt:10];
-            self.brain.secondValueIs0 = YES;
-            self.display.text = @"0." ;
-            
-            NSString *suggestedUnversalHistory = [NSString stringWithFormat: @"%@ %@", self.universalDisplay.text, @"0."];
-            self.universalDisplay.text = [self sizeUniversalDisplayToFit:suggestedUnversalHistory];
-        }else{
-            if ([self.brain.secondMultiplier intValue] < 10){
-                self.brain.secondMultiplier = [NSNumber numberWithInt:10];
-                self.display.text = [NSString stringWithFormat: @"%@%@", self.display.text, @"."];
-                
-                NSString *suggestedUnversalHistory = [NSString stringWithFormat: @"%@%@", self.universalDisplay.text, @"."];
-                self.universalDisplay.text = [self sizeUniversalDisplayToFit:suggestedUnversalHistory];
-            }
-        }
+        
+        // User is always entering a number after decimal is pressed
+        userIsEnteringANumber = YES;
     }
 }
 
 - (IBAction)operationPressed:(UIButton *)sender
 {
-    // If there's an operator and secondValue then we can get a solution
-    if (self.brain.operator){
-		if (self.brain.secondValue || self.brain.secondValueIs0){
-            // set the displays to show new value
-            self.display.text = [NSString stringWithFormat: @"%@", [self.brain getSolution]];
-            
-            NSString *suggestedUnversalHistory = [NSString stringWithFormat: @"%@ = %@", self.universalDisplay.text, self.display.text];
-            self.universalDisplay.text = [self sizeUniversalDisplayToFit:suggestedUnversalHistory];
-            
-			self.brain.firstValue = self.brain.previousResult;
-            
-            [self equals];
-            
-			self.brain.previousResult = nil;
-        }else{
-            // Already has an operator but no second value, need to remove old operator(and a space) from universalDisplay and replace it
-            NSString *suggestedUnversalHistory = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-2];
-            self.universalDisplay.text = [self sizeUniversalDisplayToFit:suggestedUnversalHistory];
+    // Store last char
+    NSString *lastChar = [self.universalDisplay.text substringFromIndex:[self.universalDisplay.text length] - 1];
+    
+    // If last thing entered was an operation, delete it in both universalDisplay and completeUniversalDisplay, add the new operator and exit the function
+    if ([CalculatorBrain isOperatorWith:lastChar]){
+        self.universalDisplay.text = [NSString stringWithFormat:@"%@%@", [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-1], [sender currentTitle]];
+        self.completeUniversalDisplay = [NSString stringWithFormat:@"%@%@", [self.completeUniversalDisplay substringToIndex:[self.completeUniversalDisplay length]-1], [sender currentTitle]];
+        
+        return;
+    }
+
+    // Only call equalsPressed if something needs to be calculated
+    NSArray *entries = [self.completeUniversalDisplay componentsSeparatedByString: @" "];
+    if ([entries count] > 2){
+        // Store last 3 entries
+        NSString *lastEntry = entries[[entries count] -1];
+        NSString *secondLastEntry = entries[[entries count] -2];
+        NSString *thirdLastEntry = entries[[entries count] -3];
+        
+        // Test if 1st and 3rd are numbers and 2nd is an operator
+        if (![CalculatorBrain isOperatorWith:lastEntry] && ![lastEntry isEqualToString:@"="] && [CalculatorBrain isOperatorWith:secondLastEntry] && ![CalculatorBrain isOperatorWith:thirdLastEntry] && ![thirdLastEntry isEqualToString:@"="]){
+            // Run equals pressed if an equation needs to be evaluated
+            [self equalsPressed:sender];
+            NSLog(@"The value of display is '%@'",self.display.text);
+            return;
         }
     }
-    // If there is no firstValue either previousResult or 0 will be our new firstValue depending on if there is a previousValue
-    if (!self.brain.firstValue){
-        if (self.brain.previousResult){
-            self.brain.firstValue = self.brain.previousResult;
-        }else{
-            self.brain.firstValue = [NSNumber numberWithInt:0];
-            self.brain.firstValueIs0 = YES;
-        }
-    }
     
-    // Set the operator, an operator can be entered at any step of the process
-    self.brain.operator = [sender currentTitle];
+    // Add operation to the displays
+    NSString *suggestedUnversalDisplay = [NSString stringWithFormat:@"%@ %@", self.universalDisplay.text, [sender currentTitle]];
+    self.universalDisplay.text = [self sizeUniversalDisplayToFit:suggestedUnversalDisplay];
     
-    // Clear display when operator pressed
-    self.display.text = @"";
+    self.completeUniversalDisplay = [NSString stringWithFormat:@"%@ %@", self.completeUniversalDisplay, [sender currentTitle]];
     
-    NSString *suggestedUnversalHistory = [NSString stringWithFormat: @"%@ %@",self.universalDisplay.text,[sender currentTitle]];
-    self.universalDisplay.text = [self sizeUniversalDisplayToFit:suggestedUnversalHistory];
+    // Anytime an operation is pressed the user is no longer entering a number
+    userIsEnteringANumber = NO;
     
-    // When operation was pressed you no longer should clear the universalDisplay text
-    self.brain.clearUniversalDisplayFlag = NO;
+    // Reset clearAfterNewEquation because they are extending the previous equation
+    clearAfterNewEquation = NO;
 }
 
-- (IBAction)backspace:(id)sender {
-    NSLog(@"%@", [NSString stringWithFormat:@"secondValue = %@", self.brain.secondValue]);
-    if (self.brain.secondValueIs0){
-        NSLog(@"secondValueIs0 = YES");
-    }else{
-        NSLog(@"secondValueIs0 = NO");
-    }
-    if (self.brain.firstValue || self.brain.firstValueIs0){                                             // firstValue has been entered
-        if (self.brain.operator){                                                                       // operator has been entered
-            if (self.brain.secondValue || self.brain.secondValueIs0){                                   // secondValue has been entered
-                if ([self.brain.secondMultiplier isEqualToNumber:([NSNumber numberWithInt:10])]){       // decimal was last thing entered so remove it
-                    if (self.brain.secondValueIs0){                                                     // if value is 0 then we need to remove extra spaces after the operator
-                        self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-3];
-                    }else{
-                        self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-1];
-                    }
-                    self.display.text = [self.display.text substringToIndex:[self.display.text length]-1];
-                    self.brain.secondMultiplier = [NSNumber numberWithInt:1];
-                    self.brain.secondValueIs0 = NO;
-                }else if([self.brain.secondMultiplier intValue] > 10){
-                    self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-1];
-                    self.display.text = self.display.text = [self.display.text substringToIndex:[self.display.text length]-1];
-                    self.brain.secondMultiplier = [NSNumber numberWithInt:[self.brain.secondMultiplier intValue]/10];
-                    
-                    // Remove right digit from secondValue only if digits to the right of the decimal matches up with multiplier
-                    NSString *secondValueString = [NSString stringWithFormat:@"%@", self.brain.secondValue];
-                    
-                    if ([secondValueString rangeOfString:@"."].location != NSNotFound) {
-                        NSRange rangeOfDecimal = [secondValueString rangeOfString:@"."];
-                        NSString *rightOfDecimal = [secondValueString substringFromIndex:NSMaxRange(rangeOfDecimal)];
-                        int secondValueCountRightOfDecimal = [rightOfDecimal length];
-                        int multiplierCount = [[NSString stringWithFormat:@"%@", self.brain.secondMultiplier] length] - 1;
-                        if(secondValueCountRightOfDecimal == multiplierCount){
-                            self.brain.secondValue = [NSNumber numberWithDouble:[[secondValueString substringToIndex:[secondValueString length]-1] doubleValue]];
-                        }
-                    }
-                    
-                    // Test if value = 0 and set it
-                    if ([self.brain.secondValue doubleValue] == 0){
-                        self.brain.secondValue = nil;
-                        
-                        if ([self.brain.secondMultiplier intValue] > 1){
-                            self.brain.secondValueIs0 = YES;
-                        }else{
-                            self.brain.secondValueIs0 = NO;
-                            // Delete additional spaces
-                            self.display.text = [NSString stringWithFormat:@"%@", self.brain.firstValue];
-                            self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-1];
-                        }
-                    }
-                }else if([self.brain.secondMultiplier intValue] == 1){
-                    self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-1];
-                    self.display.text = self.display.text = [self.display.text substringToIndex:[self.display.text length]-1];
-                    
-                    // Remove right digit from secondValue
-                    NSString *secondValueString = [NSString stringWithFormat:@"%@", self.brain.secondValue];
-                    self.brain.secondValue = [NSNumber numberWithInt:[[secondValueString substringToIndex:[secondValueString length]-1] intValue]];
-                    
-                    // Test if value = 0 and set it
-                    if ([self.brain.secondValue intValue] == 0){
-                        self.brain.secondValue = nil;
-                        
-                        self.brain.secondValueIs0 = NO;
-                        // Delete additional spaces
-                        self.display.text = [NSString stringWithFormat:@"%@", self.brain.firstValue];
-                        self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-1];
-                    }
-                }
-            }else{
-                self.brain.operator = nil;
-                self.universalDisplay.text = self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-2];
-                self.display.text = [NSString stringWithFormat:@"%@",self.brain.firstValue];
+- (IBAction)changeSignPressed:(id)sender {
+    // User must be entering a number to perform this operation
+    if (userIsEnteringANumber || clearAfterNewEquation) {
+        if ([self.universalDisplay.text rangeOfString:@" " options:NSBackwardsSearch].location == NSNotFound) {
+            // If something has been entered it is the only operand. Switch the sign and return
+            if (![self.universalDisplay.text doubleValue] == 0) {
+                NSString *newDisplay = [NSString stringWithFormat:@"%g",[self.universalDisplay.text doubleValue] * -1];
+                self.display.text = newDisplay;
+                self.universalDisplay.text = newDisplay;
+                self.completeUniversalDisplay = newDisplay;
             }
-        }else{
-            if ([self.brain.firstMultiplier isEqualToNumber:([NSNumber numberWithInt:10])]){
-                if (self.brain.firstValueIs0){
-                    self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-3];
-                }else{
-                    self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-1];
-                }
-                self.display.text = self.display.text = [self.display.text substringToIndex:[self.display.text length]-1];
-                self.brain.firstMultiplier = [NSNumber numberWithInt:1];
-                self.brain.firstValueIs0 = NO;
-            }else if([self.brain.firstMultiplier intValue] > 10){
-                self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-1];
-                self.display.text = self.display.text = [self.display.text substringToIndex:[self.display.text length]-1];
-                self.brain.firstMultiplier = [NSNumber numberWithInt:[self.brain.firstMultiplier intValue]/10];
-                
-                // Remove right digit from firstValue only if digits to the right of the decimal matches up with multiplier
-                NSString *firstValueString = [NSString stringWithFormat:@"%@", self.brain.firstValue];
-                
-                if ([firstValueString rangeOfString:@"."].location != NSNotFound) {
-                    NSRange rangeOfDecimal = [firstValueString rangeOfString:@"."];
-                    NSString *rightOfDecimal = [firstValueString substringFromIndex:NSMaxRange(rangeOfDecimal)];
-                    int firstValueCountRightOfDecimal = [rightOfDecimal length];
-                    int multiplierCount = [[NSString stringWithFormat:@"%@", self.brain.firstMultiplier] length] - 1;
-                    if(firstValueCountRightOfDecimal == multiplierCount){
-                        self.brain.firstValue = [NSNumber numberWithDouble:[[firstValueString substringToIndex:[firstValueString length]-1] doubleValue]];
-                    }
-                }
-                
-                // Test if value = 0 and set it
-                if ([self.brain.firstValue doubleValue] == 0){
-                    self.brain.firstValue = nil;
-                    
-                    if ([self.brain.firstMultiplier intValue] > 1){
-                        self.brain.firstValueIs0 = YES;
-                    }else{
-                        self.brain.firstValueIs0 = NO;
-                        // Delete additional spaces
-                        self.display.text = [NSString stringWithFormat:@"%@", self.brain.firstValue];
-                        self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-1];
-                    }
-                }
-            }else if([self.brain.firstMultiplier intValue] == 1){
-                
-                self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-1];
-                self.display.text = self.display.text = [self.display.text substringToIndex:[self.display.text length]-1];
-                
-                // Remove right digit from firstValue
-                NSString *firstValueString = [NSString stringWithFormat:@"%@", self.brain.firstValue];
-                self.brain.firstValue = [NSNumber numberWithInt:[[firstValueString substringToIndex:[firstValueString length]-1] intValue]];
-                
-                // Test if value = 0 and set it
-                if ([self.brain.firstValue intValue] == 0){
-                    self.brain.firstValue = nil;
-                    
-                    self.brain.firstValueIs0 = NO;
-                    // Delete additional spaces
-                    self.display.text = @"0";
-                    self.universalDisplay.text = [self.universalDisplay.text substringToIndex:[self.universalDisplay.text length]-1];
-                }
-            }
+                 
+            return;
         }
-    } // Else there is nothing to backspace
+        
+        // Store the location of the last space so we know where to add in the new value and remove the old
+        int location = [self.universalDisplay.text rangeOfString:@" " options:NSBackwardsSearch].location;
+        
+        // The number in the display should always be the number we're working with so multiply by -1 to change sign and store it
+        NSString *newNumber = [NSString stringWithFormat:@"%g",[self.display.text doubleValue] * -1];
+        
+        // Add it to the displays removing old values where necessary
+        self.display.text = newNumber;
+        self.universalDisplay.text = [NSString stringWithFormat:@"%@ %@",[self.universalDisplay.text substringToIndex:location],newNumber];
+        self.completeUniversalDisplay = [NSString stringWithFormat:@"%@ %@",[self.completeUniversalDisplay substringToIndex:[self.completeUniversalDisplay rangeOfString:@" " options:NSBackwardsSearch].location],newNumber];
+    }
 }
 
-- (IBAction)equalsPressed
+- (IBAction)backspace:(UIButton *)sender
 {
-    [self equals];
+    // Store length of completeUniversalDisplay
+    int len = [self.completeUniversalDisplay length];
     
-    // When = is pressed by the user this flag goes up
-    self.brain.clearUniversalDisplayFlag = YES;
+    if (len==1) {
+        [self clearPressed:sender];
+        return;
+    }
+    
+    NSLog(@"1");
+    if (len > 1) {
+        NSLog(@"2");
+        // If the new string ends in a whitespace remove it along with the last character
+        if ([[self.completeUniversalDisplay substringWithRange:NSMakeRange(len - 2, 1)] isEqualToString:@" "]) {
+            NSLog(@"3");
+            self.completeUniversalDisplay = [self.completeUniversalDisplay substringToIndex:len - 2];
+            NSLog(@"4");
+            self.universalDisplay.text = [self.universalDisplay.text substringToIndex:len - 2];
+            
+            NSLog(@"5");
+            // If the new last character is a number then userIsEnteringANumber and !clearAfterNewEquation otherwise !userIsEnteringANumber
+            @try {
+                
+            len = [self.completeUniversalDisplay length];
+            if ([CalculatorBrain isOperatorWith:[self.completeUniversalDisplay substringFromIndex:len - 1]]) {
+                NSLog(@"6");
+                userIsEnteringANumber = NO;
+            }else{
+                NSLog(@"7");
+                userIsEnteringANumber = YES;
+                clearAfterNewEquation = NO;
+            }
+                
+            }
+            @catch (NSException *exception) {
+                NSLog(@"Exception thrown '%@'",exception);
+            }
+            
+        }else{
+            self.completeUniversalDisplay = [self.completeUniversalDisplay substringToIndex:len - 1];
+            self.universalDisplay.text = [self.universalDisplay.text substringToIndex:len - 1];
+        }
+        
+        NSLog(@"5");
+        if ([self.display.text length] > 0) {
+            NSLog(@"6");
+            self.display.text = [self.display.text substringToIndex:[self.display.text length]-1];
+        }
+        NSLog(@"7");
+    }
+}
+
+- (IBAction)equalsPressed:(id)sender {
+    // Store sender currentTitle so we know if we need to add an operator or an = to the string
+    NSString *newChar = [sender currentTitle];
+    
+    // Refactor the display contents and evaluate it
+    NSString *cleanEquation = [CalculatorBrain refactorDisplayWith:[NSString stringWithFormat:@"%@ %@",self.completeUniversalDisplay, newChar]];
+    
+    NSLog(@"completeUniversalDisplay in equalsPressed is %@",self.completeUniversalDisplay);
+    NSLog(@"cleanEquation in equalsPressed is %@",cleanEquation);
+    
+    // Get result of the equation
+    NSString *newResult = [CalculatorBrain evaluateWith:cleanEquation];
+    
+    
+    // Add result to displays but only if an empty string wasn't returned
+    if (![newResult isEqualToString:@""]){
+        self.display.text = newResult;
+    }
+    
+    NSString *suggestedUnversalDisplay = cleanEquation;
+    
+    // Only add a space if newResult isn't blank
+    if (![newResult isEqualToString:@""]) {
+        suggestedUnversalDisplay = [NSString stringWithFormat:@"%@ %@",suggestedUnversalDisplay,newResult];
+        self.completeUniversalDisplay = [NSString stringWithFormat:@"%@",suggestedUnversalDisplay];
+    }
+    
+    NSLog(@"suggestedUniversalDisplay in equalsPressed is %@",suggestedUnversalDisplay);
+    NSLog(@"self.completeUniversalDisplay in equalsPressed is %@",self.completeUniversalDisplay);
+    
+    self.universalDisplay.text = [self sizeUniversalDisplayToFit:suggestedUnversalDisplay];
+    self.completeUniversalDisplay = [self sizeUniversalDisplayToFit:suggestedUnversalDisplay];
+        
+    // If the last entry is an = we need to remove it and run equalsPressed again
+    // This can only have if an = is entered right after an operator
+    NSArray *newEntries = [newResult componentsSeparatedByString: @" "];
+    if ([newEntries[[newEntries count]-1] isEqualToString:@"="]){
+        self.completeUniversalDisplay = [self.completeUniversalDisplay substringToIndex:[self.completeUniversalDisplay length]-2];
+        [self equalsPressed:sender];
+    }
+    
+    // When = is pressed the user is no longer entering a number
+    userIsEnteringANumber = NO;
+    
+    
+    NSLog(@"completeUniversalDisplay2 in equalsPressed is %@",self.completeUniversalDisplay);
+    
+    // Any time equals is pressed we set clearAfterNewEquation to YES. Then if a new, unrelated equation is started next we clear the old equation
+    if ([[sender currentTitle] isEqualToString:@"="]) {
+        clearAfterNewEquation = YES;
+    }
 }
 
 @end

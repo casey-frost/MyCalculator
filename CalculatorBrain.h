@@ -10,26 +10,11 @@
 
 @interface CalculatorBrain : NSObject
 
-// Tells the program to clear the universalDisplay if another operation isn't run on the result
-@property (nonatomic)           BOOL        clearUniversalDisplayFlag;
-
-// Store old values in case another operation is run on them
-@property (nonatomic,strong)    NSNumber    *previousResult;
-@property (nonatomic,strong)    NSNumber    *previousSecondValue;
-@property (nonatomic,strong)    NSNumber    *previousSecondMultiplier;
-@property (nonatomic,strong)    NSString    *previousOperator;
-
-// Store the state of current equation being entered
-@property (nonatomic,strong)    NSNumber    *firstValue;
-@property (nonatomic,strong)    NSString    *operator;
-@property (nonatomic,strong)    NSNumber    *secondValue;
-@property (nonatomic)           BOOL        firstValueIs0;
-@property (nonatomic)           BOOL        secondValueIs0;
-
-// Store the location of the decimals if they exist. Allows for easy adding of digits after decimals without counting digits
-@property (nonatomic,strong)    NSNumber    *firstMultiplier;
-@property (nonatomic,strong)    NSNumber    *secondMultiplier;
-
-- (NSString *)getSolution;
++ (BOOL)isOperatorWith:(NSString *)entry;
++ (NSString *)refactorDisplayWith:(NSString *)completeUniversalDisplay;
++ (NSString *)evaluateWith:(NSString *)equation;
++ (NSString *)findLastOperatorWith:(NSArray *)entries;
++ (NSString *)findLastOperandWith:(NSArray *)entries;
++ (NSString *)replaceLastOperandIn:(NSString *)universalDisplay with:(NSString *)digit;
 
 @end
