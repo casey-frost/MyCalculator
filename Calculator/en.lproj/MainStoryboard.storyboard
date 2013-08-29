@@ -33,7 +33,7 @@
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="digitPressed:" destination="2" eventType="touchUpInside" id="xFN-Ud-OGW"/>
+                                    <action selector="addDigitToEquation:" destination="2" eventType="touchUpInside" id="E72-e2-egq"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ref-sh-GtD">
@@ -49,7 +49,7 @@
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="digitPressed:" destination="2" eventType="touchUpInside" id="gkk-C9-Y7d"/>
+                                    <action selector="addDigitToEquation:" destination="2" eventType="touchUpInside" id="tQA-Ux-Gdc"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="edm-cR-9Wg">
@@ -65,7 +65,7 @@
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="digitPressed:" destination="2" eventType="touchUpInside" id="518-l2-hGV"/>
+                                    <action selector="addDigitToEquation:" destination="2" eventType="touchUpInside" id="2z4-nG-yNF"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Hb1-dd-zia">
@@ -78,7 +78,7 @@
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="digitPressed:" destination="2" eventType="touchUpInside" id="FGR-WV-PhA"/>
+                                    <action selector="addDigitToEquation:" destination="2" eventType="touchUpInside" id="f2S-X6-sed"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="y82-Av-skz">
@@ -91,7 +91,7 @@
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="digitPressed:" destination="2" eventType="touchUpInside" id="rPI-Uz-1au"/>
+                                    <action selector="addDigitToEquation:" destination="2" eventType="touchUpInside" id="baF-8o-oeS"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="lHp-R7-0A8">
@@ -104,7 +104,7 @@
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="digitPressed:" destination="2" eventType="touchUpInside" id="Acd-c3-Dai"/>
+                                    <action selector="addDigitToEquation:" destination="2" eventType="touchUpInside" id="CzT-6v-2K8"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="IVn-el-e8Z">
@@ -117,7 +117,7 @@
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="digitPressed:" destination="2" eventType="touchUpInside" id="aIZ-NO-Sl9"/>
+                                    <action selector="addDigitToEquation:" destination="2" eventType="touchUpInside" id="C4r-nT-hCe"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Xub-yt-gRj">
@@ -130,7 +130,7 @@
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="digitPressed:" destination="2" eventType="touchUpInside" id="gMy-Ls-Ez7"/>
+                                    <action selector="addDigitToEquation:" destination="2" eventType="touchUpInside" id="Daa-dj-3Nq"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PDN-hT-6Ef">
@@ -143,7 +143,7 @@
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="digitPressed:" destination="2" eventType="touchUpInside" id="bzv-iQ-hCs"/>
+                                    <action selector="addDigitToEquation:" destination="2" eventType="touchUpInside" id="7AX-Ls-Di2"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="CGj-TP-GOi">
@@ -156,7 +156,7 @@
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="digitPressed:" destination="2" eventType="touchUpInside" id="mJU-Gx-vin"/>
+                                    <action selector="addDigitToEquation:" destination="2" eventType="touchUpInside" id="EnD-9e-Ksa"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hqE-Nv-H9n">
@@ -172,7 +172,7 @@
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="operationPressed:" destination="2" eventType="touchUpInside" id="WpQ-hS-9W6"/>
+                                    <action selector="addOperationToEquation:" destination="2" eventType="touchUpInside" id="FfF-m0-dyp"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="S2v-zO-6po">
@@ -184,9 +184,6 @@
                                 <state key="highlighted">
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
-                                <connections>
-                                    <action selector="operationPressed:" destination="2" eventType="touchUpInside" id="qEd-gC-bYp"/>
-                                </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="bdq-Ch-woH">
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
@@ -197,9 +194,6 @@
                                 <state key="highlighted">
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
-                                <connections>
-                                    <action selector="operationPressed:" destination="2" eventType="touchUpInside" id="z1U-Mg-Cy7"/>
-                                </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9Pu-Xr-wrw">
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
@@ -210,9 +204,6 @@
                                 <state key="highlighted">
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
-                                <connections>
-                                    <action selector="operationPressed:" destination="2" eventType="touchUpInside" id="dgS-4L-bom"/>
-                                </connections>
                             </button>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="0" textAlignment="right" lineBreakMode="headTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8SC-gf-FIX">
                                 <constraints>
@@ -232,7 +223,7 @@
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="decimalPressed:" destination="2" eventType="touchUpInside" id="iUU-bU-1B3"/>
+                                    <action selector="addDecimalToEquation:" destination="2" eventType="touchUpInside" id="Wpc-w7-Cdk"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="JOd-Qn-dgX">
@@ -245,7 +236,7 @@
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="equalsPressed:" destination="2" eventType="touchUpInside" id="IWZ-oI-XBu"/>
+                                    <action selector="calculateEquationResult:" destination="2" eventType="touchUpInside" id="a7X-6g-kQu"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="nBR-zx-39r">
@@ -258,7 +249,7 @@
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="changeSignPressed:" destination="2" eventType="touchUpInside" id="bdh-8m-cvV"/>
+                                    <action selector="changeOperandSignInEquation:" destination="2" eventType="touchUpInside" id="hyc-hf-ixN"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="lCJ-7t-8F0">
@@ -274,7 +265,7 @@
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="backspace:" destination="2" eventType="touchUpInside" id="fhe-Lf-6um"/>
+                                    <action selector="removeLastEntryInEquation:" destination="2" eventType="touchUpInside" id="lTs-Vf-R8A"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="wbu-Mv-Hqd">
@@ -362,13 +353,15 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="4" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-424" y="-57"/>
+            <point key="canvasLocation" x="-470" y="-55"/>
         </scene>
     </scenes>
     <classes>
         <class className="CalculatorViewController" superclassName="UIViewController">
             <source key="sourceIdentifier" type="project" relativePath="./Classes/CalculatorViewController.h"/>
             <relationships>
+                <relationship kind="action" name="addDigitToEquation:" candidateClass="UIButton"/>
+                <relationship kind="action" name="changeOperandSignInEquation:"/>
                 <relationship kind="outlet" name="display" candidateClass="UILabel"/>
                 <relationship kind="outlet" name="universalDisplay" candidateClass="UILabel"/>
             </relationships>

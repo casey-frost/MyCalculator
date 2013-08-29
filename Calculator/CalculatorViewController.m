@@ -67,8 +67,7 @@ BOOL clearAfterNewEquation = NO;                                        // Lets 
     return suggestedUniversalDisplay;
 }
 
-- (IBAction)digitPressed:(UIButton *)sender
-{
+- (IBAction)addDigitToEquation:(UIButton *)sender {
     // If user is starting a new equation we need to clear state
     if (clearAfterNewEquation){
         [self clearPressed:sender];
@@ -81,6 +80,7 @@ BOOL clearAfterNewEquation = NO;                                        // Lets 
     if ([self.display.text isEqualToString: @"0"]){
         self.display.text = @"";
     }
+    
     if ([self.universalDisplay.text isEqualToString: @"0"]){
         self.universalDisplay.text = @"";
         self.completeUniversalDisplay = @"";
@@ -109,8 +109,7 @@ BOOL clearAfterNewEquation = NO;                                        // Lets 
     userIsEnteringANumber = YES;
 }
 
-- (IBAction)decimalPressed:(UIButton*)sender
-{
+- (IBAction)addDecimalToEquation:(UIButton *)sender {
     // If user is starting a new equation we need to clear state
     if (clearAfterNewEquation){
         [self clearPressed:sender];
@@ -141,8 +140,7 @@ BOOL clearAfterNewEquation = NO;                                        // Lets 
     }
 }
 
-- (IBAction)operationPressed:(UIButton *)sender
-{
+- (IBAction)addOperationToEquation:(UIButton *)sender {
     // Store last char
     NSString *lastChar = [self.universalDisplay.text substringFromIndex:[self.universalDisplay.text length] - 1];
     
@@ -153,7 +151,7 @@ BOOL clearAfterNewEquation = NO;                                        // Lets 
         
         return;
     }
-
+    
     // Only call equalsPressed if something needs to be calculated
     NSArray *entries = [self.completeUniversalDisplay componentsSeparatedByString: @" "];
     if ([entries count] > 2){
@@ -166,7 +164,6 @@ BOOL clearAfterNewEquation = NO;                                        // Lets 
         if (![CalculatorBrain isOperatorWith:lastEntry] && ![lastEntry isEqualToString:@"="] && [CalculatorBrain isOperatorWith:secondLastEntry] && ![CalculatorBrain isOperatorWith:thirdLastEntry] && ![thirdLastEntry isEqualToString:@"="]){
             // Run equals pressed if an equation needs to be evaluated
             [self equalsPressed:sender];
-            NSLog(@"The value of display is '%@'",self.display.text);
             return;
         }
     }
@@ -184,7 +181,7 @@ BOOL clearAfterNewEquation = NO;                                        // Lets 
     clearAfterNewEquation = NO;
 }
 
-- (IBAction)changeSignPressed:(id)sender {
+- (IBAction)changeOperandSignInEquation:(id)sender {
     // User must be entering a number to perform this operation
     if (userIsEnteringANumber || clearAfterNewEquation) {
         if ([self.universalDisplay.text rangeOfString:@" " options:NSBackwardsSearch].location == NSNotFound) {
@@ -195,7 +192,7 @@ BOOL clearAfterNewEquation = NO;                                        // Lets 
                 self.universalDisplay.text = newDisplay;
                 self.completeUniversalDisplay = newDisplay;
             }
-                 
+            
             return;
         }
         
@@ -212,8 +209,7 @@ BOOL clearAfterNewEquation = NO;                                        // Lets 
     }
 }
 
-- (IBAction)backspace:(UIButton *)sender
-{
+- (IBAction)removeLastEntryInEquation:(id)sender {
     // Store length of completeUniversalDisplay
     int len = [self.completeUniversalDisplay length];
     
@@ -222,61 +218,37 @@ BOOL clearAfterNewEquation = NO;                                        // Lets 
         return;
     }
     
-    NSLog(@"1");
     if (len > 1) {
-        NSLog(@"2");
         // If the new string ends in a whitespace remove it along with the last character
         if ([[self.completeUniversalDisplay substringWithRange:NSMakeRange(len - 2, 1)] isEqualToString:@" "]) {
-            NSLog(@"3");
             self.completeUniversalDisplay = [self.completeUniversalDisplay substringToIndex:len - 2];
-            NSLog(@"4");
             self.universalDisplay.text = [self.universalDisplay.text substringToIndex:len - 2];
             
-            NSLog(@"5");
             // If the new last character is a number then userIsEnteringANumber and !clearAfterNewEquation otherwise !userIsEnteringANumber
-            @try {
-                
             len = [self.completeUniversalDisplay length];
             if ([CalculatorBrain isOperatorWith:[self.completeUniversalDisplay substringFromIndex:len - 1]]) {
-                NSLog(@"6");
                 userIsEnteringANumber = NO;
             }else{
-                NSLog(@"7");
                 userIsEnteringANumber = YES;
                 clearAfterNewEquation = NO;
             }
-                
-            }
-            @catch (NSException *exception) {
-                NSLog(@"Exception thrown '%@'",exception);
-            }
-            
         }else{
             self.completeUniversalDisplay = [self.completeUniversalDisplay substringToIndex:len - 1];
             self.universalDisplay.text = [self.universalDisplay.text substringToIndex:len - 1];
         }
         
-        NSLog(@"5");
         if ([self.display.text length] > 0) {
-            NSLog(@"6");
             self.display.text = [self.display.text substringToIndex:[self.display.text length]-1];
         }
-        NSLog(@"7");
     }
 }
 
-- (IBAction)equalsPressed:(id)sender {
+- (IBAction)calculateEquationResult:(id)sender {
     // Store sender currentTitle so we know if we need to add an operator or an = to the string
     NSString *newChar = [sender currentTitle];
     
-    // Refactor the display contents and evaluate it
-    NSString *cleanEquation = [CalculatorBrain refactorDisplayWith:[NSString stringWithFormat:@"%@ %@",self.completeUniversalDisplay, newChar]];
-    
-    NSLog(@"completeUniversalDisplay in equalsPressed is %@",self.completeUniversalDisplay);
-    NSLog(@"cleanEquation in equalsPressed is %@",cleanEquation);
-    
     // Get result of the equation
-    NSString *newResult = [CalculatorBrain evaluateWith:cleanEquation];
+    NSNumber *newResult = [CalculatorBrain evaluateEquation:[NSString stringWithFormat:@"%@ %@",self.completeUniversalDisplay, newChar]];
     
     
     // Add result to displays but only if an empty string wasn't returned
@@ -292,25 +264,19 @@ BOOL clearAfterNewEquation = NO;                                        // Lets 
         self.completeUniversalDisplay = [NSString stringWithFormat:@"%@",suggestedUnversalDisplay];
     }
     
-    NSLog(@"suggestedUniversalDisplay in equalsPressed is %@",suggestedUnversalDisplay);
-    NSLog(@"self.completeUniversalDisplay in equalsPressed is %@",self.completeUniversalDisplay);
-    
     self.universalDisplay.text = [self sizeUniversalDisplayToFit:suggestedUnversalDisplay];
     self.completeUniversalDisplay = [self sizeUniversalDisplayToFit:suggestedUnversalDisplay];
-        
+    
     // If the last entry is an = we need to remove it and run equalsPressed again
     // This can only have if an = is entered right after an operator
     NSArray *newEntries = [newResult componentsSeparatedByString: @" "];
     if ([newEntries[[newEntries count]-1] isEqualToString:@"="]){
         self.completeUniversalDisplay = [self.completeUniversalDisplay substringToIndex:[self.completeUniversalDisplay length]-2];
-        [self equalsPressed:sender];
+        [self calculateEquationResult:sender];
     }
     
     // When = is pressed the user is no longer entering a number
     userIsEnteringANumber = NO;
-    
-    
-    NSLog(@"completeUniversalDisplay2 in equalsPressed is %@",self.completeUniversalDisplay);
     
     // Any time equals is pressed we set clearAfterNewEquation to YES. Then if a new, unrelated equation is started next we clear the old equation
     if ([[sender currentTitle] isEqualToString:@"="]) {

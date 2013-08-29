@@ -10,11 +10,7 @@
 
 @interface CalculatorBrain : NSObject
 
-+ (BOOL)isOperatorWith:(NSString *)entry;
-+ (NSString *)refactorDisplayWith:(NSString *)completeUniversalDisplay;
-+ (NSString *)evaluateWith:(NSString *)equation;
-+ (NSString *)findLastOperatorWith:(NSArray *)entries;
-+ (NSString *)findLastOperandWith:(NSArray *)entries;
 + (NSString *)replaceLastOperandIn:(NSString *)universalDisplay with:(NSString *)digit;
++ (NSNumber *)evaluateEquation:(NSString *)string;
 
 @end
